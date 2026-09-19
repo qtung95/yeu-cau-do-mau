@@ -17,9 +17,9 @@
     font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
     font-size:16px;line-height:1.55;padding-bottom:120px}
   main{max-width:640px;margin:0 auto;padding:32px 20px}
-  header h1{font-size:1.75rem;line-height:1.25;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+  header h1{font-size:1.75rem;line-height:1.25;margin:0 0 24px;font-weight:700;letter-spacing:-.01em}
   header p{margin:0 0 28px;color:var(--phu)}
-  h2{font-size:1.05rem;font-weight:600;margin:0 0 4px}
+  h2{font-size:1.05rem;font-weight:600;margin:0 0 14px}
   .goi-y{color:var(--phu);font-size:.9rem;margin:0 0 14px}
   section{background:var(--giay);border:1px solid var(--vien);border-radius:10px;padding:22px 20px;margin-bottom:18px}
 
@@ -85,7 +85,6 @@
 <main id="app">
   <header>
     <h1>Phiếu yêu cầu đo mẫu</h1>
-    <p id="dong-dau">Chọn dịch vụ, nhập số mẫu và thông tin liên hệ. Chúng tôi sẽ liên hệ lại để xác nhận lịch đo.</p>
   </header>
 
   <div id="thong-bao" class="thong-bao" role="alert"></div>
@@ -93,17 +92,15 @@
   <form id="form" novalidate>
     <section>
       <h2>Dịch vụ đo</h2>
-      <p class="goi-y">Chọn từng dịch vụ trong danh sách. Có thể thêm nhiều dịch vụ, mỗi dịch vụ một số mẫu riêng.</p>
       <div id="ds-dv"><div class="trang-thai">Đang tải danh sách dịch vụ…</div></div>
     </section>
 
     <section>
       <h2>Thông tin liên hệ</h2>
-      <p class="goi-y">Các mục có dấu <em style="color:var(--loi);font-style:normal">*</em> là bắt buộc.</p>
       <label class="truong"><span>Họ và tên <em>*</em></span><input name="hoTen" autocomplete="name" required></label>
       <div class="hai-cot">
         <label class="truong"><span>Số điện thoại <em>*</em></span><input name="sdt" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxx" required></label>
-        <label class="truong"><span>Email <em>*</em></span><input name="email" type="email" autocomplete="email" required></label>
+        <label class="truong"><span>Email</span><input name="email" type="email" autocomplete="email"></label>
       </div>
       <label class="truong"><span>Nơi công tác <em>*</em></span><input name="noiCongTac" autocomplete="organization" placeholder="Trường, viện, công ty…" required></label>
       <label class="truong"><span>Vị trí / chức vụ</span><input name="viTri" autocomplete="organization-title"></label>
@@ -124,9 +121,9 @@
 
 <script>
 /* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMNNAmMzy1FqigYPP1mpOMzKAx7MuCgPUpo7lpsZbqmASIs6pHvM9ERcm-ZXKuy2TBbQ/exec';
+const SCRIPT_URL = 'DAN_URL_WEB_APP_VAO_DAY';
 /* =============================================================== */
-const PHIEN_BAN = 'v3';
+const PHIEN_BAN = 'v4';
 
 let DICH_VU = [];
 const chon = {}; // ma -> {soMau, donGia}
@@ -252,7 +249,7 @@ function kiemTra(f){ /* f = form.elements */
   const sai = (ten, msg) => { f[ten].classList.add('sai'); f[ten].focus(); baoLoi(msg); return false; };
   if(!f.hoTen.value.trim()) return sai('hoTen', 'Vui lòng nhập họ và tên.');
   if(!/^(0|\+84)\d{9,10}$/.test(f.sdt.value.replace(/[\s.\-]/g, ''))) return sai('sdt', 'Số điện thoại chưa đúng. Ví dụ: 0912 345 678.');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return sai('email', 'Email chưa đúng định dạng.');
+  if(f.email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return sai('email', 'Email chưa đúng định dạng.');
   if(!f.noiCongTac.value.trim()) return sai('noiCongTac', 'Vui lòng nhập nơi công tác.');
   return true;
 }
