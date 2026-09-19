@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phiếu yêu cầu đo mẫu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --nen:#F3F6F8; --giay:#FFFFFF; --muc:#16212B; --phu:#5B6875;
+    --xanh:#1F4E79; --xanh-nhat:#E4EDF5; --vien:#D3DAE1; --loi:#B3261E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--nen);color:var(--muc);
+    font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    font-size:16px;line-height:1.55;padding-bottom:120px}
+  main{max-width:640px;margin:0 auto;padding:32px 20px}
+  header h1{font-size:1.75rem;line-height:1.25;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+  header p{margin:0 0 28px;color:var(--phu)}
+  h2{font-size:1.05rem;font-weight:600;margin:0 0 4px}
+  .goi-y{color:var(--phu);font-size:.9rem;margin:0 0 14px}
+  section{background:var(--giay);border:1px solid var(--vien);border-radius:10px;padding:22px 20px;margin-bottom:18px}
+
+  /* Danh sách dịch vụ */
+  .dv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;
+      padding:12px 12px;border:1px solid var(--vien);border-radius:8px;margin-bottom:8px;cursor:pointer}
+  .dv:hover{border-color:var(--xanh)}
+  .dv.chon{border-color:var(--xanh);background:var(--xanh-nhat)}
+  .dv input[type=checkbox]{width:20px;height:20px;accent-color:var(--xanh);margin:0}
+  .dv .ten{font-weight:500}
+  .dv .tb{display:block;font-size:.85rem;color:var(--phu);font-weight:400}
+  .chi-tiet{grid-column:2;display:none;flex-wrap:wrap;gap:12px 20px;margin-top:8px;font-size:.92rem}
+  .dv.chon .chi-tiet{display:flex}
+  .o-nhap{display:flex;flex-direction:column;gap:4px}
+  .o-gia{display:flex;align-items:center;border:1px solid var(--vien);border-radius:6px;background:#fff;height:40px;padding-right:10px}
+  .o-gia input{width:130px;height:38px;border:0;padding:0 10px;font:inherit;font-weight:600;text-align:right;background:transparent}
+  .o-gia small{color:var(--phu)}
+  .buoc{display:flex;border:1px solid var(--vien);border-radius:6px;overflow:hidden;background:#fff}
+  .buoc button{width:38px;height:38px;border:0;background:#fff;font-size:1.2rem;cursor:pointer;color:var(--xanh)}
+  .buoc input{width:64px;height:38px;border:0;border-left:1px solid var(--vien);border-right:1px solid var(--vien);
+      text-align:center;font:inherit;font-weight:600}
+  .buoc input::-webkit-inner-spin-button{display:none}
+
+  /* Thông tin khách hàng */
+  label.truong{display:block;margin-bottom:14px}
+  label.truong span{display:block;font-size:.92rem;font-weight:500;margin-bottom:5px}
+  label.truong span em{color:var(--loi);font-style:normal}
+  label.truong input,label.truong textarea{width:100%;padding:10px 12px;border:1px solid var(--vien);border-radius:6px;
+      font:inherit;background:#fff;color:var(--muc)}
+  label.truong textarea{min-height:80px;resize:vertical}
+  .hai-cot{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  @media (max-width:520px){.hai-cot{grid-template-columns:1fr}}
+  input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--xanh);outline-offset:2px}
+  .an{position:absolute;left:-9999px}
+  .sai{border-color:var(--loi)!important}
+
+  /* Thanh tổng kết */
+  .thanh{position:fixed;left:0;right:0;bottom:0;background:var(--muc);color:#fff;padding:14px 20px;
+      box-shadow:0 -2px 12px rgba(22,33,43,.18)}
+  .thanh-trong{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:16px}
+  .tom-tat{flex:1;font-size:.92rem;line-height:1.4}
+  .tom-tat strong{display:block;font-size:1.15rem}
+  .nut-gui{background:#fff;color:var(--muc);border:0;border-radius:8px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer}
+  .nut-gui:disabled{opacity:.5;cursor:not-allowed}
+
+  .thong-bao{padding:12px 14px;border-radius:8px;margin-bottom:18px;display:none}
+  .thong-bao.loi{display:block;background:#FBEAE9;color:var(--loi);border:1px solid #F0C4C1}
+  .trang-thai{color:var(--phu);padding:12px 0}
+
+  .xong{text-align:center;padding:48px 20px}
+  .xong .ma{font-size:2rem;font-weight:700;color:var(--xanh);letter-spacing:.02em;margin:10px 0 16px}
+  .xong button{background:none;border:1px solid var(--vien);border-radius:8px;padding:10px 18px;font:inherit;cursor:pointer}
+  @media (prefers-reduced-motion:no-preference){.dv{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<main id="app">
+  <header>
+    <h1>Phiếu yêu cầu đo mẫu</h1>
+    <p id="dong-dau">Chọn dịch vụ, nhập số mẫu và thông tin liên hệ. Chúng tôi sẽ liên hệ lại để xác nhận lịch đo.</p>
+  </header>
+
+  <div id="thong-bao" class="thong-bao" role="alert"></div>
+
+  <form id="form" novalidate>
+    <section>
+      <h2>Dịch vụ đo</h2>
+      <p class="goi-y">Có thể chọn nhiều dịch vụ, mỗi dịch vụ một số mẫu riêng.</p>
+      <div id="ds-dv"><div class="trang-thai">Đang tải danh sách dịch vụ…</div></div>
+    </section>
+
+    <section>
+      <h2>Thông tin liên hệ</h2>
+      <p class="goi-y">Các mục có dấu <em style="color:var(--loi);font-style:normal">*</em> là bắt buộc.</p>
+      <label class="truong"><span>Họ và tên <em>*</em></span><input name="hoTen" autocomplete="name" required></label>
+      <div class="hai-cot">
+        <label class="truong"><span>Số điện thoại <em>*</em></span><input name="sdt" type="tel" inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxx" required></label>
+        <label class="truong"><span>Email <em>*</em></span><input name="email" type="email" autocomplete="email" required></label>
+      </div>
+      <label class="truong"><span>Nơi công tác <em>*</em></span><input name="noiCongTac" autocomplete="organization" placeholder="Trường, viện, công ty…" required></label>
+      <label class="truong"><span>Vị trí / chức vụ</span><input name="viTri" autocomplete="organization-title"></label>
+      <label class="truong"><span>Ghi chú về mẫu</span><textarea name="ghiChu" placeholder="Loại vật liệu, kích thước mẫu, yêu cầu đặc biệt…"></textarea></label>
+      <label class="an" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
+    </section>
+  </form>
+</main>
+
+<div class="thanh" id="thanh">
+  <div class="thanh-trong">
+    <div class="tom-tat" id="tom-tat"><strong>Chưa chọn dịch vụ</strong>Chọn ít nhất một dịch vụ để gửi</div>
+    <button class="nut-gui" id="nut-gui" type="button" disabled>Gửi yêu cầu</button>
+  </div>
+</div>
+
+<script>
+/* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
+const SCRIPT_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTy5ThM3p1qNmmt6j6LJtOuj32kLev_VaBFtFWMbj0NnGd41PJCJ0Gn_0LESVYtgJcTQfL58-R2zEzez7vt0S4onN6Z53R_lDqbdgniBsnW94Qc47aCSBLGm_blD8i5PxERmJBU-0VShts8VxSqkAsqcfqg4p9A0k_ZJnRtXhvPK44ss9XNwArUHfLYYG8RY4gOmbQlCOBxBlxibQdvVidABxrnFYdUBSFziNo0n-pL6IAQJGSo1VxHAT19jE9AXG9EHRykdlea7sz_Tlp1VrFdwFB1dQ&lib=MmNv3Pjf_xORpdf6wQ9ErtdJTHYZ7JPJR';
+/* =============================================================== */
+
+let DICH_VU = [];
+const chon = {}; // ma -> {soMau, donGia}
+const $ = s => document.querySelector(s);
+const vnd = n => n.toLocaleString('vi-VN') + ' đ';
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function taiDichVu(){
+  try{
+    const r = await fetch(SCRIPT_URL + '?_ts=' + Date.now(), {cache:'no-store'});
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.loi);
+    DICH_VU = d.dichVu;
+    veDichVu();
+  }catch(e){
+    $('#ds-dv').innerHTML = '<div class="trang-thai">Không tải được danh sách dịch vụ. Kiểm tra kết nối mạng rồi tải lại trang.</div>';
+  }
+}
+
+function veDichVu(){
+  if(!DICH_VU.length){ $('#ds-dv').innerHTML = '<div class="trang-thai">Hiện chưa có dịch vụ nào nhận yêu cầu.</div>'; return; }
+  $('#ds-dv').innerHTML = DICH_VU.map(dv => `
+    <div class="dv" data-ma="${escapeHtml(dv.ma)}">
+      <input type="checkbox" id="cb-${escapeHtml(dv.ma)}" aria-label="${escapeHtml(dv.ten)}">
+      <label for="cb-${escapeHtml(dv.ma)}" class="ten">${escapeHtml(dv.ten)}${dv.thietBi ? `<span class="tb">${escapeHtml(dv.thietBi)}</span>` : ''}</label>
+      <div class="chi-tiet">
+        <div class="o-nhap">Số mẫu
+          <div class="buoc">
+            <button type="button" data-buoc="-1" aria-label="Giảm">−</button>
+            <input type="number" min="1" max="1000" step="1" value="1" inputmode="numeric" aria-label="Số mẫu ${escapeHtml(dv.ten)}">
+            <button type="button" data-buoc="1" aria-label="Tăng">+</button>
+          </div>
+        </div>
+        <div class="o-nhap">Đơn giá (không bắt buộc)
+          <div class="o-gia">
+            <input class="gia" type="text" inputmode="numeric" placeholder="0" aria-label="Đơn giá ${escapeHtml(dv.ten)}">
+            <small>đ/mẫu</small>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.querySelectorAll('.dv').forEach(o => {
+    const ma = o.dataset.ma, cb = o.querySelector('input[type=checkbox]'),
+          so = o.querySelector('.buoc input'), gia = o.querySelector('input.gia');
+    const luu = dangGo => { if(cb.checked){ chon[ma] = {soMau: chuanSo(so, dangGo), donGia: docGia(gia)}; } capNhat(); };
+    const dat = () => { o.classList.toggle('chon', cb.checked); if(!cb.checked) delete chon[ma]; luu(); };
+    cb.addEventListener('change', dat);
+    o.addEventListener('click', e => { if(e.target === o){ cb.checked = !cb.checked; dat(); } });
+    so.addEventListener('input', () => luu(true));
+    so.addEventListener('blur', () => { so.value = chuanSo(so); luu(); });
+    gia.addEventListener('input', () => {
+      const n = docGia(gia);
+      gia.value = n === '' ? '' : n.toLocaleString('vi-VN');
+      luu(true);
+    });
+    o.querySelectorAll('[data-buoc]').forEach(b => b.addEventListener('click', () => {
+      so.value = Math.min(1000, Math.max(1, chuanSo(so) + +b.dataset.buoc));
+      luu();
+    }));
+  });
+}
+
+function chuanSo(inp, dangGo){
+  const n = parseInt(inp.value, 10);
+  if(isNaN(n) || n < 1) return dangGo ? 0 : 1;
+  return Math.min(1000, n);
+}
+
+function docGia(inp){
+  const so = inp.value.replace(/\D/g, '').slice(0, 12);
+  return so === '' ? '' : parseInt(so, 10);
+}
+
+function capNhat(){
+  const ma = Object.keys(chon);
+  const tongMau = ma.reduce((s, m) => s + (chon[m].soMau || 0), 0);
+  let tien = 0, coGia = false;
+  ma.forEach(m => { if(chon[m].donGia !== ''){ coGia = true; tien += chon[m].donGia * (chon[m].soMau || 0); } });
+  if(!ma.length){
+    $('#tom-tat').innerHTML = '<strong>Chưa chọn dịch vụ</strong>Chọn ít nhất một dịch vụ để gửi';
+  }else{
+    const dong2 = `${ma.length} dịch vụ, ${tongMau} mẫu`;
+    $('#tom-tat').innerHTML = coGia ? `<strong>Tạm tính ${vnd(tien)}</strong>${dong2}` : `<strong>${dong2}</strong>Chưa nhập đơn giá`;
+  }
+  $('#nut-gui').disabled = !ma.length || ma.some(m => !chon[m].soMau);
+}
+
+function baoLoi(msg){
+  const tb = $('#thong-bao'); tb.textContent = msg; tb.className = 'thong-bao loi';
+  tb.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function kiemTra(f){
+  document.querySelectorAll('.sai').forEach(x => x.classList.remove('sai'));
+  const sai = (ten, msg) => { f[ten].classList.add('sai'); f[ten].focus(); baoLoi(msg); return false; };
+  if(!f.hoTen.value.trim()) return sai('hoTen', 'Vui lòng nhập họ và tên.');
+  if(!/^(0|\+84)\d{9,10}$/.test(f.sdt.value.replace(/[\s.\-]/g, ''))) return sai('sdt', 'Số điện thoại chưa đúng. Ví dụ: 0912 345 678.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return sai('email', 'Email chưa đúng định dạng.');
+  if(!f.noiCongTac.value.trim()) return sai('noiCongTac', 'Vui lòng nhập nơi công tác.');
+  return true;
+}
+
+$('#nut-gui').addEventListener('click', async () => {
+  const f = $('#form');
+  $('#thong-bao').className = 'thong-bao';
+  if(!kiemTra(f)) return;
+  const nut = $('#nut-gui'); nut.disabled = true; nut.textContent = 'Đang gửi…';
+  const goi = {
+    dichVu: Object.keys(chon).map(ma => ({ma, soMau: chon[ma].soMau, donGia: chon[ma].donGia})),
+    khachHang: { hoTen: f.hoTen.value, sdt: f.sdt.value, email: f.email.value, noiCongTac: f.noiCongTac.value, viTri: f.viTri.value },
+    ghiChu: f.ghiChu.value, website: f.website.value
+  };
+  try{
+    const r = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(goi) });
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.loi);
+    hienXong(d.maYC);
+  }catch(e){
+    baoLoi(e.message && !/fetch|JSON|network/i.test(e.message) ? e.message : 'Chưa gửi được yêu cầu. Kiểm tra kết nối mạng rồi bấm Gửi lại.');
+    nut.disabled = false; nut.textContent = 'Gửi yêu cầu';
+  }
+});
+
+function hienXong(ma){
+  $('#thanh').remove();
+  $('#app').innerHTML = `<div class="xong">
+    <h1 style="font-size:1.5rem;margin:0">Đã nhận yêu cầu của bạn</h1>
+    <div class="ma">${escapeHtml(ma)}</div>
+    <p style="color:var(--phu);max-width:420px;margin:0 auto 24px">Vui lòng lưu lại mã này. Chúng tôi sẽ liên hệ qua số điện thoại hoặc email bạn đã cung cấp.</p>
+    <button onclick="location.reload()">Gửi yêu cầu khác</button></div>`;
+  document.body.style.paddingBottom = '0';
+}
+
+taiDichVu();
+</script>
+</body>
+</html>
