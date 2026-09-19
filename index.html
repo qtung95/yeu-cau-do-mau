@@ -23,16 +23,21 @@
   .goi-y{color:var(--phu);font-size:.9rem;margin:0 0 14px}
   section{background:var(--giay);border:1px solid var(--vien);border-radius:10px;padding:22px 20px;margin-bottom:18px}
 
-  /* Danh sách dịch vụ */
-  .dv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;
-      padding:12px 12px;border:1px solid var(--vien);border-radius:8px;margin-bottom:8px;cursor:pointer}
-  .dv:hover{border-color:var(--xanh)}
-  .dv.chon{border-color:var(--xanh);background:var(--xanh-nhat)}
-  .dv input[type=checkbox]{width:20px;height:20px;accent-color:var(--xanh);margin:0}
-  .dv .ten{font-weight:500}
+  /* Chọn dịch vụ */
+  .chon-dv{width:100%;padding:11px 40px 11px 12px;border:1px solid var(--xanh);border-radius:8px;font:inherit;
+      color:var(--muc);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231F4E79' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
+      appearance:none;cursor:pointer}
+  .chon-dv:disabled{border-color:var(--vien);color:var(--phu);cursor:default}
+  .chon-dv:focus-visible{outline:2px solid var(--xanh);outline-offset:2px}
+  #ds-chon{margin-top:12px}
+  .rong{color:var(--phu);font-size:.92rem;padding:4px 0}
+  .dv{border:1px solid var(--xanh);background:var(--xanh-nhat);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+  .dv-dau{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .dv .ten{font-weight:600}
   .dv .tb{display:block;font-size:.85rem;color:var(--phu);font-weight:400}
-  .chi-tiet{grid-column:2;display:none;flex-wrap:wrap;gap:12px 20px;margin-top:8px;font-size:.92rem}
-  .dv.chon .chi-tiet{display:flex}
+  .bo{border:0;background:none;color:var(--phu);font:inherit;font-size:.88rem;cursor:pointer;padding:2px 4px;text-decoration:underline}
+  .bo:hover{color:var(--loi)}
+  .chi-tiet{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:10px;font-size:.92rem}
   .o-nhap{display:flex;flex-direction:column;gap:4px}
   .o-gia{display:flex;align-items:center;border:1px solid var(--vien);border-radius:6px;background:#fff;height:40px;padding-right:10px}
   .o-gia input{width:130px;height:38px;border:0;padding:0 10px;font:inherit;font-weight:600;text-align:right;background:transparent}
@@ -87,7 +92,7 @@
   <form id="form" novalidate>
     <section>
       <h2>Dịch vụ đo</h2>
-      <p class="goi-y">Có thể chọn nhiều dịch vụ, mỗi dịch vụ một số mẫu riêng.</p>
+      <p class="goi-y">Chọn từng dịch vụ trong danh sách. Có thể thêm nhiều dịch vụ, mỗi dịch vụ một số mẫu riêng.</p>
       <div id="ds-dv"><div class="trang-thai">Đang tải danh sách dịch vụ…</div></div>
     </section>
 
@@ -139,46 +144,69 @@ async function taiDichVu(){
 
 function veDichVu(){
   if(!DICH_VU.length){ $('#ds-dv').innerHTML = '<div class="trang-thai">Hiện chưa có dịch vụ nào nhận yêu cầu.</div>'; return; }
-  $('#ds-dv').innerHTML = DICH_VU.map(dv => `
-    <div class="dv" data-ma="${escapeHtml(dv.ma)}">
-      <input type="checkbox" id="cb-${escapeHtml(dv.ma)}" aria-label="${escapeHtml(dv.ten)}">
-      <label for="cb-${escapeHtml(dv.ma)}" class="ten">${escapeHtml(dv.ten)}${dv.thietBi ? `<span class="tb">${escapeHtml(dv.thietBi)}</span>` : ''}</label>
-      <div class="chi-tiet">
-        <div class="o-nhap">Số mẫu
-          <div class="buoc">
-            <button type="button" data-buoc="-1" aria-label="Giảm">−</button>
-            <input type="number" min="1" max="1000" step="1" value="1" inputmode="numeric" aria-label="Số mẫu ${escapeHtml(dv.ten)}">
-            <button type="button" data-buoc="1" aria-label="Tăng">+</button>
-          </div>
-        </div>
-        <div class="o-nhap">Đơn giá (không bắt buộc)
-          <div class="o-gia">
-            <input class="gia" type="text" inputmode="numeric" placeholder="0" aria-label="Đơn giá ${escapeHtml(dv.ten)}">
-            <small>đ/mẫu</small>
-          </div>
+  $('#ds-dv').innerHTML = `
+    <select class="chon-dv" id="chon-dv" aria-label="Chọn dịch vụ đo"></select>
+    <div id="ds-chon"></div>`;
+  $('#chon-dv').addEventListener('change', e => { if(e.target.value) themDV(e.target.value); });
+  veLuaChon();
+}
+
+function veLuaChon(){
+  const conLai = DICH_VU.filter(dv => !(dv.ma in chon));
+  const sel = $('#chon-dv');
+  sel.innerHTML = `<option value="">${conLai.length ? '+ Thêm dịch vụ đo…' : 'Đã chọn hết các dịch vụ'}</option>` +
+    conLai.map(dv => `<option value="${escapeHtml(dv.ma)}">${escapeHtml(dv.ten)}${dv.thietBi ? ' (' + escapeHtml(dv.thietBi) + ')' : ''}</option>`).join('');
+  sel.disabled = !conLai.length;
+  if(!Object.keys(chon).length) $('#ds-chon').innerHTML = '<div class="rong">Chưa chọn dịch vụ nào.</div>';
+}
+
+function themDV(ma){
+  const dv = DICH_VU.find(x => x.ma === ma); if(!dv) return;
+  if(!Object.keys(chon).length) $('#ds-chon').innerHTML = '';
+  chon[ma] = {soMau: 1, donGia: ''};
+  const o = document.createElement('div');
+  o.className = 'dv'; o.dataset.ma = ma;
+  o.innerHTML = `
+    <div class="dv-dau">
+      <div class="ten">${escapeHtml(dv.ten)}${dv.thietBi ? `<span class="tb">${escapeHtml(dv.thietBi)}</span>` : ''}</div>
+      <button type="button" class="bo" aria-label="Bỏ ${escapeHtml(dv.ten)}">Bỏ</button>
+    </div>
+    <div class="chi-tiet">
+      <div class="o-nhap">Số mẫu
+        <div class="buoc">
+          <button type="button" data-buoc="-1" aria-label="Giảm">−</button>
+          <input type="number" min="1" max="1000" step="1" value="1" inputmode="numeric" aria-label="Số mẫu ${escapeHtml(dv.ten)}">
+          <button type="button" data-buoc="1" aria-label="Tăng">+</button>
         </div>
       </div>
-    </div>`).join('');
+      <div class="o-nhap">Đơn giá (không bắt buộc)
+        <div class="o-gia">
+          <input class="gia" type="text" inputmode="numeric" placeholder="0" aria-label="Đơn giá ${escapeHtml(dv.ten)}">
+          <small>đ/mẫu</small>
+        </div>
+      </div>
+    </div>`;
+  $('#ds-chon').appendChild(o);
 
-  document.querySelectorAll('.dv').forEach(o => {
-    const ma = o.dataset.ma, cb = o.querySelector('input[type=checkbox]'),
-          so = o.querySelector('.buoc input'), gia = o.querySelector('input.gia');
-    const luu = dangGo => { if(cb.checked){ chon[ma] = {soMau: chuanSo(so, dangGo), donGia: docGia(gia)}; } capNhat(); };
-    const dat = () => { o.classList.toggle('chon', cb.checked); if(!cb.checked) delete chon[ma]; luu(); };
-    cb.addEventListener('change', dat);
-    o.addEventListener('click', e => { if(e.target === o){ cb.checked = !cb.checked; dat(); } });
-    so.addEventListener('input', () => luu(true));
-    so.addEventListener('blur', () => { so.value = chuanSo(so); luu(); });
-    gia.addEventListener('input', () => {
-      const n = docGia(gia);
-      gia.value = n === '' ? '' : n.toLocaleString('vi-VN');
-      luu(true);
-    });
-    o.querySelectorAll('[data-buoc]').forEach(b => b.addEventListener('click', () => {
-      so.value = Math.min(1000, Math.max(1, chuanSo(so) + +b.dataset.buoc));
-      luu();
-    }));
+  const so = o.querySelector('.buoc input'), gia = o.querySelector('input.gia');
+  const luu = dangGo => { chon[ma] = {soMau: chuanSo(so, dangGo), donGia: docGia(gia)}; capNhat(); };
+  so.addEventListener('input', () => luu(true));
+  so.addEventListener('blur', () => { so.value = chuanSo(so); luu(); });
+  gia.addEventListener('input', () => {
+    const n = docGia(gia);
+    gia.value = n === '' ? '' : n.toLocaleString('vi-VN');
+    luu(true);
   });
+  o.querySelectorAll('[data-buoc]').forEach(b => b.addEventListener('click', () => {
+    so.value = Math.min(1000, Math.max(1, chuanSo(so) + +b.dataset.buoc));
+    luu();
+  }));
+  o.querySelector('.bo').addEventListener('click', () => {
+    delete chon[ma]; o.remove(); veLuaChon(); capNhat(); $('#chon-dv').focus();
+  });
+
+  veLuaChon(); capNhat();
+  so.focus(); so.select();
 }
 
 function chuanSo(inp, dangGo){
