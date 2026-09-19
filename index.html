@@ -110,6 +110,7 @@
       <label class="an" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
     </section>
   </form>
+  <p id="phien-ban" style="color:var(--phu);font-size:.8rem;text-align:right;margin:0"></p>
 </main>
 
 <div class="thanh" id="thanh">
@@ -123,6 +124,7 @@
 /* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMNNAmMzy1FqigYPP1mpOMzKAx7MuCgPUpo7lpsZbqmASIs6pHvM9ERcm-ZXKuy2TBbQ/exec';
 /* =============================================================== */
+const PHIEN_BAN = 'v2 (dropdown)';
 
 let DICH_VU = [];
 const chon = {}; // ma -> {soMau, donGia}
@@ -131,6 +133,10 @@ const vnd = n => n.toLocaleString('vi-VN') + ' đ';
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 async function taiDichVu(){
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SCRIPT_URL)){
+    $('#ds-dv').innerHTML = '<div class="trang-thai" style="color:var(--loi)">Lỗi cấu hình: SCRIPT_URL chưa đúng. Link phải có dạng https://script.google.com/macros/s/.../exec</div>';
+    return;
+  }
   try{
     const r = await fetch(SCRIPT_URL + '?_ts=' + Date.now(), {cache:'no-store'});
     const d = await r.json();
@@ -280,6 +286,7 @@ function hienXong(ma){
   document.body.style.paddingBottom = '0';
 }
 
+$('#phien-ban').textContent = 'Phiên bản ' + PHIEN_BAN;
 taiDichVu();
 </script>
 </body>
