@@ -69,6 +69,7 @@
   .tom-tat strong{display:block;font-size:1.15rem}
   .nut-gui{background:#fff;color:var(--muc);border:0;border-radius:8px;padding:12px 20px;font:inherit;font-weight:600;cursor:pointer}
   .nut-gui:disabled{opacity:.5;cursor:not-allowed}
+  .nut-cuoi{display:block;width:100%;background:var(--xanh);color:#fff;padding:14px;font-size:1.05rem;margin:4px 0 18px}
 
   .thong-bao{padding:12px 14px;border-radius:8px;margin-bottom:18px;display:none}
   .thong-bao.loi{display:block;background:#FBEAE9;color:var(--loi);border:1px solid #F0C4C1}
@@ -109,6 +110,7 @@
       <label class="truong"><span>Ghi chú về mẫu</span><textarea name="ghiChu" placeholder="Loại vật liệu, kích thước mẫu, yêu cầu đặc biệt…"></textarea></label>
       <label class="an" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
     </section>
+    <button type="button" class="nut-gui nut-cuoi" id="nut-gui-cuoi">Gửi yêu cầu</button>
   </form>
   <p id="phien-ban" style="color:var(--phu);font-size:.8rem;text-align:right;margin:0"></p>
 </main>
@@ -116,7 +118,7 @@
 <div class="thanh" id="thanh">
   <div class="thanh-trong">
     <div class="tom-tat" id="tom-tat"><strong>Chưa chọn dịch vụ</strong>Chọn ít nhất một dịch vụ để gửi</div>
-    <button class="nut-gui" id="nut-gui" type="button" disabled>Gửi yêu cầu</button>
+    <button class="nut-gui" id="nut-gui" type="button">Gửi yêu cầu</button>
   </div>
 </div>
 
@@ -124,7 +126,7 @@
 /* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMNNAmMzy1FqigYPP1mpOMzKAx7MuCgPUpo7lpsZbqmASIs6pHvM9ERcm-ZXKuy2TBbQ/exec';
 /* =============================================================== */
-const PHIEN_BAN = 'v2 (dropdown)';
+const PHIEN_BAN = 'v3';
 
 let DICH_VU = [];
 const chon = {}; // ma -> {soMau, donGia}
@@ -237,7 +239,7 @@ function capNhat(){
     const dong2 = `${ma.length} dịch vụ, ${tongMau} mẫu`;
     $('#tom-tat').innerHTML = coGia ? `<strong>Tạm tính ${vnd(tien)}</strong>${dong2}` : `<strong>${dong2}</strong>Chưa nhập đơn giá`;
   }
-  $('#nut-gui').disabled = !ma.length || ma.some(m => !chon[m].soMau);
+
 }
 
 function baoLoi(msg){
@@ -245,7 +247,7 @@ function baoLoi(msg){
   tb.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-function kiemTra(f){
+function kiemTra(f){ /* f = form.elements */
   document.querySelectorAll('.sai').forEach(x => x.classList.remove('sai'));
   const sai = (ten, msg) => { f[ten].classList.add('sai'); f[ten].focus(); baoLoi(msg); return false; };
   if(!f.hoTen.value.trim()) return sai('hoTen', 'Vui lòng nhập họ và tên.');
@@ -255,11 +257,16 @@ function kiemTra(f){
   return true;
 }
 
-$('#nut-gui').addEventListener('click', async () => {
-  const f = $('#form');
+async function guiYeuCau(){
+  const f = $('#form').elements;
   $('#thong-bao').className = 'thong-bao';
+  const ma = Object.keys(chon);
+  if(!ma.length){ baoLoi('Vui lòng chọn ít nhất một dịch vụ đo.'); const sel = $('#chon-dv'); if(sel) sel.focus(); return; }
+  if(ma.some(m => !chon[m].soMau)){ baoLoi('Vui lòng nhập số mẫu cho từng dịch vụ đã chọn.'); return; }
   if(!kiemTra(f)) return;
-  const nut = $('#nut-gui'); nut.disabled = true; nut.textContent = 'Đang gửi…';
+  const nuts = document.querySelectorAll('.nut-gui');
+  const datNut = (tat, chu) => nuts.forEach(n => { n.disabled = tat; n.textContent = chu; });
+  datNut(true, 'Đang gửi…');
   const goi = {
     dichVu: Object.keys(chon).map(ma => ({ma, soMau: chon[ma].soMau, donGia: chon[ma].donGia})),
     khachHang: { hoTen: f.hoTen.value, sdt: f.sdt.value, email: f.email.value, noiCongTac: f.noiCongTac.value, viTri: f.viTri.value },
@@ -272,9 +279,11 @@ $('#nut-gui').addEventListener('click', async () => {
     hienXong(d.maYC);
   }catch(e){
     baoLoi(e.message && !/fetch|JSON|network/i.test(e.message) ? e.message : 'Chưa gửi được yêu cầu. Kiểm tra kết nối mạng rồi bấm Gửi lại.');
-    nut.disabled = false; nut.textContent = 'Gửi yêu cầu';
+    datNut(false, 'Gửi yêu cầu');
   }
-});
+}
+$('#nut-gui').addEventListener('click', guiYeuCau);
+$('#nut-gui-cuoi').addEventListener('click', guiYeuCau);
 
 function hienXong(ma){
   $('#thanh').remove();
