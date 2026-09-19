@@ -121,9 +121,9 @@
 
 <script>
 /* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
-const SCRIPT_URL = 'DAN_URL_WEB_APP_VAO_DAY';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMNNAmMzy1FqigYPP1mpOMzKAx7MuCgPUpo7lpsZbqmASIs6pHvM9ERcm-ZXKuy2TBbQ/exec'.trim();
 /* =============================================================== */
-const PHIEN_BAN = 'v4';
+const PHIEN_BAN = 'v4.1';
 
 let DICH_VU = [];
 const chon = {}; // ma -> {soMau, donGia}
@@ -132,7 +132,7 @@ const vnd = n => n.toLocaleString('vi-VN') + ' đ';
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 async function taiDichVu(){
-  if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(SCRIPT_URL)){
+  if(!/^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+|macros)\/s\/[^\/?\s]+\/exec$/.test(SCRIPT_URL)){
     $('#ds-dv').innerHTML = '<div class="trang-thai" style="color:var(--loi)">Lỗi cấu hình: SCRIPT_URL chưa đúng. Link phải có dạng https://script.google.com/macros/s/.../exec</div>';
     return;
   }
