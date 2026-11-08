@@ -42,6 +42,14 @@
   .o-gia{display:flex;align-items:center;border:1px solid var(--vien);border-radius:6px;background:#fff;height:40px;padding-right:10px}
   .o-gia input{width:130px;height:38px;border:0;padding:0 10px;font:inherit;font-weight:600;text-align:right;background:transparent}
   .o-gia small{color:var(--phu)}
+  .o-demo{display:flex;align-items:center;gap:8px;align-self:flex-end;height:40px;cursor:pointer;user-select:none}
+  .o-demo input{width:18px;height:18px;accent-color:var(--xanh);margin:0}
+  .dv.la-demo .o-gia-wrap{display:none}
+  .dv.la-demo{border-color:#1F7A4D;background:#E6F4EC}
+  .the-demo{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;font-size:.78rem;
+      font-weight:600;background:#1F7A4D;color:#fff;vertical-align:middle}
+  #khoi-sale{border-top:1px dashed var(--vien);margin-top:4px;padding-top:14px}
+  #khoi-sale .goi-y{margin-bottom:10px}
   .buoc{display:flex;border:1px solid var(--vien);border-radius:6px;overflow:hidden;background:#fff}
   .buoc button{width:38px;height:38px;border:0;background:#fff;font-size:1.2rem;cursor:pointer;color:var(--xanh)}
   .buoc input{width:64px;height:38px;border:0;border-left:1px solid var(--vien);border-right:1px solid var(--vien);
@@ -105,6 +113,11 @@
       <label class="truong"><span>Nơi công tác <em>*</em></span><input name="noiCongTac" autocomplete="organization" placeholder="Trường, viện, công ty…" required></label>
       <label class="truong"><span>Vị trí / chức vụ</span><input name="viTri" autocomplete="organization-title"></label>
       <label class="truong"><span>Ghi chú về mẫu</span><textarea name="ghiChu" placeholder="Loại vật liệu, kích thước mẫu, yêu cầu đặc biệt…"></textarea></label>
+      <div id="khoi-sale" hidden>
+        <p class="goi-y">Bạn có chọn dịch vụ demo, vui lòng cho biết nhân viên kinh doanh đang hỗ trợ bạn.</p>
+        <label class="truong"><span>Sale phụ trách <em>*</em></span><input name="sale" placeholder="Họ tên nhân viên Minh Khang"></label>
+        <label class="truong"><span>SĐT sale</span><input name="saleSdt" type="tel" inputmode="tel" placeholder="09xx xxx xxx"></label>
+      </div>
       <label class="an" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
     </section>
     <button type="button" class="nut-gui nut-cuoi" id="nut-gui-cuoi">Gửi yêu cầu</button>
@@ -123,10 +136,10 @@
 /* ====== CẤU HÌNH: dán URL Web App của Apps Script vào đây ====== */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzMNNAmMzy1FqigYPP1mpOMzKAx7MuCgPUpo7lpsZbqmASIs6pHvM9ERcm-ZXKuy2TBbQ/exec'.trim();
 /* =============================================================== */
-const PHIEN_BAN = 'v4.1';
+const PHIEN_BAN = 'v5 (demo)';
 
 let DICH_VU = [];
-const chon = {}; // ma -> {soMau, donGia}
+const chon = {}; // ma -> {soMau, donGia, demo}
 const $ = s => document.querySelector(s);
 const vnd = n => n.toLocaleString('vi-VN') + ' đ';
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -168,12 +181,12 @@ function veLuaChon(){
 function themDV(ma){
   const dv = DICH_VU.find(x => x.ma === ma); if(!dv) return;
   if(!Object.keys(chon).length) $('#ds-chon').innerHTML = '';
-  chon[ma] = {soMau: 1, donGia: ''};
+  chon[ma] = {soMau: 1, donGia: '', demo: false};
   const o = document.createElement('div');
   o.className = 'dv'; o.dataset.ma = ma;
   o.innerHTML = `
     <div class="dv-dau">
-      <div class="ten">${escapeHtml(dv.ten)}${dv.thietBi ? `<span class="tb">${escapeHtml(dv.thietBi)}</span>` : ''}</div>
+      <div class="ten">${escapeHtml(dv.ten)}<span class="the-demo" hidden>DEMO</span>${dv.thietBi ? `<span class="tb">${escapeHtml(dv.thietBi)}</span>` : ''}</div>
       <button type="button" class="bo" aria-label="Bỏ ${escapeHtml(dv.ten)}">Bỏ</button>
     </div>
     <div class="chi-tiet">
@@ -184,17 +197,28 @@ function themDV(ma){
           <button type="button" data-buoc="1" aria-label="Tăng">+</button>
         </div>
       </div>
-      <div class="o-nhap">Đơn giá (không bắt buộc)
+      <div class="o-nhap o-gia-wrap">Đơn giá (không bắt buộc)
         <div class="o-gia">
           <input class="gia" type="text" inputmode="numeric" placeholder="0" aria-label="Đơn giá ${escapeHtml(dv.ten)}">
           <small>đ/mẫu</small>
         </div>
       </div>
+      <label class="o-demo"><input type="checkbox" class="demo"> Demo (miễn phí)</label>
     </div>`;
   $('#ds-chon').appendChild(o);
 
-  const so = o.querySelector('.buoc input'), gia = o.querySelector('input.gia');
-  const luu = dangGo => { chon[ma] = {soMau: chuanSo(so, dangGo), donGia: docGia(gia)}; capNhat(); };
+  const so = o.querySelector('.buoc input'), gia = o.querySelector('input.gia'),
+        cbDemo = o.querySelector('input.demo');
+  const luu = dangGo => {
+    chon[ma] = {soMau: chuanSo(so, dangGo), donGia: cbDemo.checked ? '' : docGia(gia), demo: cbDemo.checked};
+    capNhat();
+  };
+  cbDemo.addEventListener('change', () => {
+    o.classList.toggle('la-demo', cbDemo.checked);
+    o.querySelector('.the-demo').hidden = !cbDemo.checked;
+    if(cbDemo.checked) gia.value = '';
+    luu();
+  });
   so.addEventListener('input', () => luu(true));
   so.addEventListener('blur', () => { so.value = chuanSo(so); luu(); });
   gia.addEventListener('input', () => {
@@ -225,18 +249,25 @@ function docGia(inp){
   return so === '' ? '' : parseInt(so, 10);
 }
 
+function coDemo(){ return Object.keys(chon).some(m => chon[m].demo); }
+
 function capNhat(){
   const ma = Object.keys(chon);
   const tongMau = ma.reduce((s, m) => s + (chon[m].soMau || 0), 0);
+  const soDemo = ma.filter(m => chon[m].demo).length;
   let tien = 0, coGia = false;
-  ma.forEach(m => { if(chon[m].donGia !== ''){ coGia = true; tien += chon[m].donGia * (chon[m].soMau || 0); } });
+  ma.forEach(m => {
+    if(!chon[m].demo && chon[m].donGia !== ''){ coGia = true; tien += chon[m].donGia * (chon[m].soMau || 0); }
+  });
   if(!ma.length){
     $('#tom-tat').innerHTML = '<strong>Chưa chọn dịch vụ</strong>Chọn ít nhất một dịch vụ để gửi';
   }else{
-    const dong2 = `${ma.length} dịch vụ, ${tongMau} mẫu`;
-    $('#tom-tat').innerHTML = coGia ? `<strong>Tạm tính ${vnd(tien)}</strong>${dong2}` : `<strong>${dong2}</strong>Chưa nhập đơn giá`;
+    let dong2 = `${ma.length} dịch vụ, ${tongMau} mẫu`;
+    if(soDemo) dong2 += `, ${soDemo} demo miễn phí`;
+    $('#tom-tat').innerHTML = coGia ? `<strong>Tạm tính ${vnd(tien)}</strong>${dong2}`
+      : `<strong>${dong2}</strong>${soDemo === ma.length ? 'Toàn bộ là demo miễn phí' : 'Chưa nhập đơn giá'}`;
   }
-
+  $('#khoi-sale').hidden = !coDemo();
 }
 
 function baoLoi(msg){
@@ -251,6 +282,11 @@ function kiemTra(f){ /* f = form.elements */
   if(!/^(0|\+84)\d{9,10}$/.test(f.sdt.value.replace(/[\s.\-]/g, ''))) return sai('sdt', 'Số điện thoại chưa đúng. Ví dụ: 0912 345 678.');
   if(f.email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim())) return sai('email', 'Email chưa đúng định dạng.');
   if(!f.noiCongTac.value.trim()) return sai('noiCongTac', 'Vui lòng nhập nơi công tác.');
+  if(coDemo()){
+    if(!f.sale.value.trim()) return sai('sale', 'Bạn có chọn dịch vụ demo, vui lòng nhập tên sale phụ trách.');
+    const ss = f.saleSdt.value.replace(/[\s.\-]/g, '');
+    if(ss && !/^(0|\+84)\d{9,10}$/.test(ss)) return sai('saleSdt', 'SĐT sale chưa đúng. Ví dụ: 0912 345 678.');
+  }
   return true;
 }
 
@@ -265,8 +301,14 @@ async function guiYeuCau(){
   const datNut = (tat, chu) => nuts.forEach(n => { n.disabled = tat; n.textContent = chu; });
   datNut(true, 'Đang gửi…');
   const goi = {
-    dichVu: Object.keys(chon).map(ma => ({ma, soMau: chon[ma].soMau, donGia: chon[ma].donGia})),
-    khachHang: { hoTen: f.hoTen.value, sdt: f.sdt.value, email: f.email.value, noiCongTac: f.noiCongTac.value, viTri: f.viTri.value },
+    dichVu: Object.keys(chon).map(ma => ({
+      ma, soMau: chon[ma].soMau, donGia: chon[ma].demo ? '' : chon[ma].donGia, demo: !!chon[ma].demo
+    })),
+    khachHang: {
+      hoTen: f.hoTen.value, sdt: f.sdt.value, email: f.email.value,
+      noiCongTac: f.noiCongTac.value, viTri: f.viTri.value,
+      sale: coDemo() ? f.sale.value : '', saleSdt: coDemo() ? f.saleSdt.value : ''
+    },
     ghiChu: f.ghiChu.value, website: f.website.value
   };
   try{
